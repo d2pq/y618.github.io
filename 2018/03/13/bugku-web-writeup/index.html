@@ -104,7 +104,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/03/13/bugku-web-writeup/14.png">
 <meta property="og:image" content="http://yoursite.com/2018/03/13/bugku-web-writeup/15.png">
 <meta property="og:image" content="http://yoursite.com/2018/03/13/bugku-web-writeup/16.png">
-<meta property="og:updated_time" content="2018-03-14T07:40:44.293Z">
+<meta property="og:updated_time" content="2018-03-14T08:53:46.793Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="bugku web writeup">
 <meta name="twitter:description" content="web2直接F12出现flag  文件上传测试bp抓包 %00截断得到flag  计算器进去后发现输入被限制 右键审查元素，修改限制，然后提交答案得到flag  web基础$_GET传入get参数 ?what=flag web基础$_POST传入post值  矛盾1234567$num=$_GET[&apos;num&apos;];if(!is_numeric($num))&amp;#123;echo $num;if($nu">
@@ -397,7 +397,7 @@
 <h1 id="前女友"><a href="#前女友" class="headerlink" title="前女友"></a>前女友</h1><p>右键查看源代码，发现有一个code文件 打开之后是一段php代码<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'v1'</span>]) &amp;&amp; <span class="keyword">isset</span>($_GET[<span class="string">'v2'</span>]) &amp;&amp; <span class="keyword">isset</span>($_GET[<span class="string">'v3'</span>]))&#123;</span><br><span class="line">    $v1 = $_GET[<span class="string">'v1'</span>];</span><br><span class="line">    $v2 = $_GET[<span class="string">'v2'</span>];</span><br><span class="line">    $v3 = $_GET[<span class="string">'v3'</span>];</span><br><span class="line">    <span class="keyword">if</span>($v1 != $v2 &amp;&amp; md5($v1) == md5($v2))&#123;</span><br><span class="line">        <span class="keyword">if</span>(!strcmp($v3, $flag))&#123;</span><br><span class="line">            <span class="keyword">echo</span> $flag;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure></p>
 <p>分析后可得 v1和v2用两个md5开头0e的绕过<br>strcmp函数有个漏洞 就是传入非字符串类型的数据时会返回0<br>于是构造payload<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?v1=QNKCDZO&amp;v2=s878926199a&amp;v3[]=</span><br></pre></td></tr></table></figure></p>
 <h1 id="login1-SKCTF"><a href="#login1-SKCTF" class="headerlink" title="login1(SKCTF)"></a>login1(SKCTF)</h1><p>题目提示 sql约束攻击 自行百度一下<br>然后进行注册 用户名 admin            （admin后面有空格）密码自己设</p>
-<h1 id="你从哪里来"><a href="#你从哪里来" class="headerlink" title="你从哪里来"></a>你从哪里来</h1><p>打开页面 显示 are you from google?<br>抓包修改 referer 为<a href="https://www.google.cm" target="_blank" rel="noopener">https://www.google.cm</a></p>
+<h1 id="你从哪里来"><a href="#你从哪里来" class="headerlink" title="你从哪里来"></a>你从哪里来</h1><p>打开页面 显示 are you from google?<br>抓包修改 referer 为<a href="https://www.google.cm" target="_blank" rel="noopener">https://www.google.cm</a><br>#</p>
 
       
     </div>
