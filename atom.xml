@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2018-07-20T02:05:26.706Z</updated>
+  <updated>2018-07-20T02:05:59.706Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://yoursite.com/2018/07/20/TCP-IP-%E7%8A%B6%E6%80%81/"/>
     <id>http://yoursite.com/2018/07/20/TCP-IP-状态/</id>
     <published>2018-07-20T01:38:09.000Z</published>
-    <updated>2018-07-20T02:05:26.706Z</updated>
+    <updated>2018-07-20T02:05:59.706Z</updated>
     
     <content type="html"><![CDATA[<p>继上次渗透测试之后，在内网发现一个财务系统和一个web应用服务器，对此展开后续渗透测试，在用nmap扫描了两台服务器后出现了连接问题，连接之后就马上断开了，尝试换了端口之后还是不行，网络变卡，于是就去找它的原因。</p><h1 id="查找原因"><a href="#查找原因" class="headerlink" title="查找原因"></a>查找原因</h1><p>首先就去登录了拿到权限的代理服务器，查看有什么异常，对于服务器的资源倒是没太大消耗，也没有出现卡顿的情况。于是就去查看端口连接情况，发现出现大量TIME_WAIT状态的tcp连接，看了下ip地址都指向了80端口，应该就是这个问题了<br><img src="2018-07-20-09-44-55.png" alt=""></p><h1 id="产生的原因"><a href="#产生的原因" class="headerlink" title="产生的原因"></a>产生的原因</h1><p><img src="2018-07-20-09-49-13.png" alt=""><br>TCP在断开连接的时候会发送四次握手，在主动关闭方发送的最后一个ACK后会进入TIME_WAIT状态，保留状态的时间为两个MSL，在两个MSL后依然没有收到回复，就关闭连接。MSL是指Max Segment Lifetime，即数据包在网络中的最大生存时间。每种TCP协议的实现方法均要指定一个合适的MSL值</p><h1 id="出现太多TIME-WAIT可能导致的后果"><a href="#出现太多TIME-WAIT可能导致的后果" class="headerlink" title="出现太多TIME_WAIT可能导致的后果"></a>出现太多TIME_WAIT可能导致的后果</h1><p>在高并发连接的TCP服务器上，当服务器处理完请求后立刻按照主动正常关闭连接。这个场景下，会出现大量socket处于TIME_WAIT状态，如果客户端的并发量持续很高，此时客户端就会显示连接不上，或者连接不稳定断开。</p><h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p>修改 /etc/sysctl.conf<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># vi /etc/sysctl.conf  //加入以下内容，net.ipv4.tcp_syncookies默认就有，不需要再添加</span><br><span class="line"># Controls the use of TCP syncookies</span><br><span class="line">net.ipv4.tcp_syncookies = 1</span><br><span class="line"></span><br><span class="line"># The TIME-WAIT sockets for new connections can be reused</span><br><span class="line">net.ipv4.tcp_tw_reuse = 1</span><br><span class="line"></span><br><span class="line"># Enable fast recycling of TIME-WAIT sockets status</span><br><span class="line">net.ipv4.tcp_tw_recycle = 1</span><br><span class="line"></span><br><span class="line"># Decrease the time default value for tcp_fin_timeout connection</span><br><span class="line">net.ipv4.tcp_fin_timeout = 30</span><br></pre></td></tr></table></figure></p>]]></content>
     
