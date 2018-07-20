@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2018-07-18T09:19:05.269Z</updated>
+  <updated>2018-07-20T02:05:26.706Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -17,11 +17,33 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>TCP/IP 状态</title>
+    <link href="http://yoursite.com/2018/07/20/TCP-IP-%E7%8A%B6%E6%80%81/"/>
+    <id>http://yoursite.com/2018/07/20/TCP-IP-状态/</id>
+    <published>2018-07-20T01:38:09.000Z</published>
+    <updated>2018-07-20T02:05:26.706Z</updated>
+    
+    <content type="html"><![CDATA[<p>继上次渗透测试之后，在内网发现一个财务系统和一个web应用服务器，对此展开后续渗透测试，在用nmap扫描了两台服务器后出现了连接问题，连接之后就马上断开了，尝试换了端口之后还是不行，网络变卡，于是就去找它的原因。</p><h1 id="查找原因"><a href="#查找原因" class="headerlink" title="查找原因"></a>查找原因</h1><p>首先就去登录了拿到权限的代理服务器，查看有什么异常，对于服务器的资源倒是没太大消耗，也没有出现卡顿的情况。于是就去查看端口连接情况，发现出现大量TIME_WAIT状态的tcp连接，看了下ip地址都指向了80端口，应该就是这个问题了<br><img src="2018-07-20-09-44-55.png" alt=""></p><h1 id="产生的原因"><a href="#产生的原因" class="headerlink" title="产生的原因"></a>产生的原因</h1><p><img src="2018-07-20-09-49-13.png" alt=""><br>TCP在断开连接的时候会发送四次握手，在主动关闭方发送的最后一个ACK后会进入TIME_WAIT状态，保留状态的时间为两个MSL，在两个MSL后依然没有收到回复，就关闭连接。MSL是指Max Segment Lifetime，即数据包在网络中的最大生存时间。每种TCP协议的实现方法均要指定一个合适的MSL值</p><h1 id="出现太多TIME-WAIT可能导致的后果"><a href="#出现太多TIME-WAIT可能导致的后果" class="headerlink" title="出现太多TIME_WAIT可能导致的后果"></a>出现太多TIME_WAIT可能导致的后果</h1><p>在高并发连接的TCP服务器上，当服务器处理完请求后立刻按照主动正常关闭连接。这个场景下，会出现大量socket处于TIME_WAIT状态，如果客户端的并发量持续很高，此时客户端就会显示连接不上，或者连接不稳定断开。</p><h1 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h1><p>修改 /etc/sysctl.conf<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># vi /etc/sysctl.conf  //加入以下内容，net.ipv4.tcp_syncookies默认就有，不需要再添加</span><br><span class="line"># Controls the use of TCP syncookies</span><br><span class="line">net.ipv4.tcp_syncookies = 1</span><br><span class="line"></span><br><span class="line"># The TIME-WAIT sockets for new connections can be reused</span><br><span class="line">net.ipv4.tcp_tw_reuse = 1</span><br><span class="line"></span><br><span class="line"># Enable fast recycling of TIME-WAIT sockets status</span><br><span class="line">net.ipv4.tcp_tw_recycle = 1</span><br><span class="line"></span><br><span class="line"># Decrease the time default value for tcp_fin_timeout connection</span><br><span class="line">net.ipv4.tcp_fin_timeout = 30</span><br></pre></td></tr></table></figure></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;继上次渗透测试之后，在内网发现一个财务系统和一个web应用服务器，对此展开后续渗透测试，在用nmap扫描了两台服务器后出现了连接问题，连接之后就马上断开了，尝试换了端口之后还是不行，网络变卡，于是就去找它的原因。&lt;/p&gt;
+&lt;h1 id=&quot;查找原因&quot;&gt;&lt;a href=&quot;#查找
+      
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
     <title>第一次渗透测试</title>
     <link href="http://yoursite.com/2018/07/18/%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/"/>
     <id>http://yoursite.com/2018/07/18/第一次渗透测试/</id>
     <published>2018-07-18T08:09:59.000Z</published>
-    <updated>2018-07-18T09:19:05.269Z</updated>
+    <updated>2018-07-18T09:19:16.609Z</updated>
     
     <content type="html"><![CDATA[<h1 id="信息收集"><a href="#信息收集" class="headerlink" title="信息收集"></a>信息收集</h1><p>给了两个url 一个前台页面一个后台页面 首先对前台页面进行端口扫描 发现主要端口如下：<br><img src="2018-07-18-16-44-25.png" alt=""><br>发现有mongodb的 有ssh的 还有redis和一些其他的端口 因为刚刚开始做，收集到了这个我就急忙的开始做下一步了</p><h1 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h1><p>在这些服务中，mongodb和redis都存在未授权访问漏洞，先尝试登陆mongodb数据库<br><img src="2018-07-18-16-49-10.png" alt=""></p><p>可以看到当前数据库是test，执行别的命令是就提示没有认证了<br>接下来尝试redis数据库<br><img src="2018-07-18-16-50-36.png" alt=""></p><p>可以看到不仅能远程登录，还可以查看当前数据库的信息，能对数据库进行增删改查，于是就在网上搜关于这个漏洞的利用。很多都写通过ssh公钥写到服务器上，然后直接远程登录过去。自己在尝试的时候发现都写进去了，却还是连不上去。然后放弃了这个念头。想到前几天看到的一篇文章可以通过linux的定时任务来反弹出来一个shell。<br><img src="2018-07-18-16-54-54.png" alt=""><br><img src="2018-07-18-16-55-11.png" alt=""><br><img src="2018-07-18-16-55-17.png" alt=""><br>尝试直接拿到root权限的shell 觉得直接完成了任务，然后又是周五，就没有继续下去了</p><h1 id="后续渗透测试"><a href="#后续渗透测试" class="headerlink" title="后续渗透测试"></a>后续渗透测试</h1><p>到周一的时候，我就没什么事干，就想继续搞一搞这台机子，然后我就新建了一个账户，想着不用shell了直接ssh连上去方便点发现也连不上，然后换了一个端口才连上，想到之前写的公钥，直接root连上成功，还是要多尝试，而且是有多个ssh端口的情况下。</p><p>因为有个后台页面，就很想进去看看，然后就在服务器上一直找跟后台有关的文件，找了好久都没找到，不知道在哪里，一直就觉得很奇怪，怎么会有这样的网站，之后就想着那先去内网看看</p><p>接下来就是挂个代理进去，通过reGeorg工具。先传个jsp脚本文件到网站目录，确定能解析，然后在kali上云溪reGeorg工具建立隧道，之后用proxychains 进入内网</p><p>有个内网财务系统访问是个登录页面，直接弱口令就能登录。扫描同一段的内网主机，还是有不少机子开了80端口 还对财务系统的服务器进行端口扫描，扫了之后才发现，原来我拿到的服务器只是一个代理服务器，真正的后台是在这一台的8080端口上，做了一个映射出来而已，前台都是静态页，怪不得我在那台服务器上怎么也找不到关于后台的文件。</p><p>之后就是在这台服务器上做了一些简单的尝试，但是因为时间的关系，说是马上得要结果，然后也就没深入下去了</p>]]></content>
     
